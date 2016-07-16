@@ -74,7 +74,7 @@ public class Serializer {
             }
             public void addObj(Obj[] f){
             	for(Obj o : f)
-            		addObj(f);
+            		addObj(o);
             }
             public final void setName(String name){
                     assert(name.length()<Short.MAX_VALUE);

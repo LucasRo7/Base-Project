@@ -1,22 +1,31 @@
 package com.LS7.core;
 
+/**
+ * Updater class, responsible for everything done(except rendering)
+ * 
+ * @author LucasRo7
+ */
 public class Updater implements Runnable {
 
+    // Thread that contains the Updater class
     public Thread thread;
 
-    public Updater() {
-        
-    }
-
+    /**
+     * Create and start a thread containing this renderer class
+     */
     public void start() {
         thread = new Thread(this,"Updater Thread");
         thread.start();
     }
-
+    /**
+     * Interrupts the thread containing this renderer class
+     */
     public void stop() {
         thread.interrupt();
     }
-
+    /**
+     * Main loop
+     */
     public void run() {
         // This code is SOOO old :/
         long lastNanoTime = System.nanoTime();
@@ -33,7 +42,7 @@ public class Updater implements Runnable {
                 unprocessed-=6000;
             }
             while (unprocessed >= 1) {
-                tick();
+                update();
                 ticks++;
                 unprocessed -= 1;
             }
@@ -44,8 +53,10 @@ public class Updater implements Runnable {
             }
         }
     }
-
-    protected void tick() {
+    /**
+     * Used to update everything
+     */
+    protected void update() {
         
     }
 }

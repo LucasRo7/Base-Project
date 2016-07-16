@@ -9,25 +9,43 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO rename this class to a more apropriate name, since "Multiplayer"
+//      is for games and not "anything that uses internet" (NetworkHandler, maybe?)
 public class Multiplayer {
 	
-	public interface connectable{
-		public void receive();
+	public interface receiver{
+		public void receive(byte[] message);
 	}
 	public class relay implements Runnable{
-		public List<connectable> cs = new ArrayList<>();
+		public List<receiver> receivers = new ArrayList<>();
 		public Thread thread;
-		
-		public void run() {
-			
+		public boolean running=false;
+		public void start(){
+			running=true;
+			thread = new Thread(this,"Relay(Multiplayer class)");
+			thread.start();
 		}
-		
+		public void stop(){
+			running=false;
+		}
+		public void run() {
+			while(running){
+				byte[] message = receive(1024*1024,0);
+				for(receiver r : receivers){
+					r.receive(message);
+				}
+			}
+		}
+		public void addReceiver(receiver r){
+			receivers.add(r);
+		}
 	}
 	
 	protected DatagramSocket socket;
 	protected InetAddress ip;
 	protected Thread send;
-
+	protected relay relay;
+	
 	public boolean openPort(int localPort) {
 		try {
 			System.out.println("Opening port: "+localPort);
@@ -60,7 +78,8 @@ public class Multiplayer {
 		byte[] data = new byte[size];
 		DatagramPacket packet = new DatagramPacket(data, size);
 		try {
-			socket.setSoTimeout(timeout);
+			if(timeout>=0)
+				socket.setSoTimeout(timeout);
 			socket.receive(packet);
 		} catch(SocketException e){
 			System.out.println("Failed to receive!(Timeout reached)");

@@ -10,42 +10,55 @@ import java.awt.image.DataBufferInt;
 
 import com.LS7.util.Input;
 import com.LS7.util.image.Pixel;
-
+/**
+ * Renderer class, responsible for all the rendering done.
+ * 
+ * @author LucasRo7
+ */
 public class Renderer extends Canvas implements Runnable {
 	
+	// Amount of horizontal pixels
+    public static int width = 320;
+    // Amount of vertical pixels
+    public static int height = 240;
+	// Scale of pixels
     public static int res = 2;
-    public static int width = 640/res;
-    public static int height = 480/res;
-    public static double FPS = 59.5;
-    protected static final long serialVersionUID = 1L;
-
+    // Frames per second
+    public static double FPS = 60;
+	private static final long serialVersionUID = 1880057858920032660L;
+	
+	// Image that contains all pixels(integer pixels)
     protected BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+	// Array that contains all pixels(integer pixels)
     protected int[] imgpixels = ((DataBufferInt) bi.getRaster().getDataBuffer()).getData();
+	// Array that contains all pixels(Pixel class)
     protected Pixel[] pixels = new Pixel[imgpixels.length];
-    protected boolean rendering = false;
-
-    public long lt=0;
-    public long time=0;
-
+    
+    // Thread that contains the Renderer class
     protected Thread thread;
-
+    
     public Renderer() {
         setPreferredSize(new Dimension(width*res,height*res));
         for (int i = 0; i < pixels.length; i++) {
             pixels[i] = Pixel.black;
         }
-        lt=System.currentTimeMillis();
     }
-
+    /**
+     * Create and start a thread containing this renderer class
+     */
     public void start() {
         thread = new Thread(this,"Renderer Thread");
         thread.start();
     }
-
+    /**
+     * Interrupts the thread containing this renderer class
+     */
     public void stop() {
         thread.interrupt();
     }
-
+    /**
+     * Main loop
+     */
     public synchronized void run() {
         long lastNanoTime = System.nanoTime();
         double unprocessed = 0;
@@ -69,11 +82,14 @@ public class Renderer extends Canvas implements Runnable {
                     Data.fps = frames;
                     frames = 0;
                 }
-                //System.out.println(""+((System.nanoTime() - lastNanoTime) / nsPerTick));
             }
         }
     }
-    
+    /**
+     * Used to render everything.
+     * This method is private, if another class extends Renderer, 
+     * it should use graphicsRender(...) or pixelRender()
+     */
     private void render() {
         BufferStrategy bs = getBufferStrategy();
         if (bs == null) {
@@ -83,9 +99,7 @@ public class Renderer extends Canvas implements Runnable {
         for (int i = 0; i < pixels.length; i++) {
             pixels[i] = Pixel.black;
         }
-        rendering = true;
         pixelRender();
-        rendering = false;
         for (int i = 0; i < imgpixels.length; i++) {
             imgpixels[i] = pixels[i].getHex();
         }
@@ -102,44 +116,67 @@ public class Renderer extends Canvas implements Runnable {
         bs.show();
         g.dispose();
     }
-
-    protected void graphicsRender(Graphics g) {
-        
+    /**
+     * Renders anything that uses the Graphics to render
+     * 
+     * @param graphics the graphics class used to render
+     */
+    protected void graphicsRender(Graphics graphics) {
+    	// something.render(graphics);
     }
+    /**
+     * Renders anything that uses per pixel rendering
+     * e.g. uses methods like drawPixel(...),
+     */
     protected void pixelRender() {
-    	
+    	// something.render(this);
+    	drawLine(width/2, height/2, Input.amx, Input.amy,0.1,true,Pixel.white);
     }
-
+    /**
+     * Returns the pixel at the specified position.
+     * @param x the pixel's X position
+     * @param y the pixel's Y position
+     * @return the pixel
+     */
     public Pixel getPixel(int x, int y) {
-        if (rendering) {
-            if (onScreen(x,y))
-                return pixels[x + y * width];
-            return Pixel.black;
-        } else {
-            new Exception("Attempt to get Pixel while not rendering").printStackTrace();
-        }
-        return null;
+        if (onScreen(x,y))
+            return pixels[x + y * width];
+        return Pixel.black;
     }
+    /**
+     * Checks if the position is inside the screen and
+     * can be drawn
+     * @param x the X position
+     * @param y the Y position
+     * @return if the position is inside the screen
+     */
     public static boolean onScreen(double x, double y){
         return x >= 0 && x < width && y >= 0 && y < height;
     }
-    public void drawPixel(int x, int y, Pixel p) {
-        if (rendering) {
-            if (onScreen(x,y))
-                pixels[x + y * width] = p;
-        } else {
-            new Exception("Attempt to draw Pixel while not rendering").printStackTrace();
-        }
+    /**
+     * Draws a pixel on the screen. This class automatically
+     * checks if the pixel is inside the screen
+     * @param x the pixel's X position
+     * @param y the pixel's Y position
+     * @param the Pixel to draw
+     */
+    public void drawPixel(int x, int y, Pixel color) {
+        if (onScreen(x,y))
+            pixels[x + y * width] = color.over(getPixel(x,y));
     }
-    public void drawPixel(double x, double y, Pixel p) {
-        if (rendering) {
-            if (onScreen(x,y))
-                pixels[((int)x) + ((int)y) * width] = p;
-        } else {
-            new Exception("Attempt to draw Pixel while not rendering").printStackTrace();
-        }
-    }
-    public void drawLine(Pixel col, double x1,double y1,double x2,double y2){
+    /**
+     * Draws a line between two points on the screen.
+     * @param x1 the X position of the first point
+     * @param y1 the Y position of the first point
+     * @param x2 the X position of the second point
+     * @param y2 the Y position of the second point
+     * @param precision the precision of the line, 1 is ideal if AA is false,
+     *        any value higher than 1 may produce blank spaces within the line and
+     *        values too small may cause lag
+     * @param AA if this class should use anti-aliasing
+     * @param color the Pixel to draw
+     */
+    public void drawLine(double x1,double y1,double x2,double y2,double precision,boolean AA,Pixel color){
     	double x = x2-x1;
     	double y = y2-y1;
     	double dir = Math.atan2(x, y);
@@ -147,20 +184,18 @@ public class Renderer extends Canvas implements Runnable {
     	for(double mag = 0;mag<=dist;mag+=0.1){
     		double nx=x1+mag*Math.sin(dir);
     		double ny=y1+mag*Math.cos(dir);
-    		drawAAPixels(nx,ny,col);
+    		if(AA)
+    			drawAAPixels(nx,ny,color);
+    		else
+    			drawPixel((int)nx,(int)ny,color);
     	}
     }
-    public void drawLine(Pixel col, int x1,int y1,int x2,int y2){
-    	double x = x2-x1;
-    	double y = y2-y1;
-    	double dir = Math.atan2(x, y);
-    	double dist = Math.sqrt(x*x+y*y);
-    	for(double mag = 0;mag<=dist;mag+=0.1){
-    		double nx=x1+mag*Math.sin(dir);
-    		double ny=y1+mag*Math.cos(dir);
-    		drawPixel((int)nx,(int)ny,col);
-    	}
-    }
+    /**
+     * Used to draw 5 anti-aliased pixels, to make it look better.
+     * @param x the pixel's X position
+     * @param y the pixel's Y position
+     * @param the Pixel to draw
+     */
     public void drawAAPixels(double x, double y, Pixel p){
     	double o=0.4;
     	Pixel darker=p.mult(0.1,1,1,1);
@@ -170,6 +205,14 @@ public class Renderer extends Canvas implements Runnable {
     	drawAAPixel(x-o,y-o,darker);
     	drawAAPixel(x  ,y  ,p);
     }
+    /**
+     * Used to draw a pixel with a smaller alpha value based on the distance to 
+     * the center of the nearest pixel, it automatically detects if the pixel is
+     * inside the screen.
+     * @param x the pixel's X position
+     * @param y the pixel's Y position
+     * @param the Pixel to draw
+     */
     public void drawAAPixel(double x, double y, Pixel p){
     	if(!onScreen((int)x,(int)y))
     		return;

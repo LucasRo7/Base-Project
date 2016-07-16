@@ -4,7 +4,12 @@ import javax.swing.JFrame;
 
 import com.LS7.core.*;
 import com.LS7.util.Input;
-
+/**
+ * Main class, responsible to create the JFrame, add Listeners, 
+ * Updater and Renderer
+ * 
+ * @author LucasRo7
+ */
 public class Main {
 
 	protected Renderer renderer;

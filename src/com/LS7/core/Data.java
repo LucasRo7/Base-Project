@@ -1,5 +1,10 @@
 package com.LS7.core;
-
+/**
+ * Class used to keep values used in both Updater and Renderer
+ * (things like maps, arrays, etc)
+ * 
+ * @author LucasRo7
+ */
 public class Data {
 	
 	// Integers

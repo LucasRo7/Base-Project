@@ -2,9 +2,18 @@ package com.LS7.util.image;
  
 import java.awt.Color;
 import java.util.Random;
- 
+/**
+ * Class made for handling colors.
+ * (i should rename it to "Colors" someday)
+ * @author LucasRo7
+ */
 public class Pixel {
-    
+    /**
+     * Used to store HSL colors(instead of RGB)
+     * It also has methods to convert from HSL to RGB and vice-versa
+     * 
+     * @author LucasRo7
+     */
 	public static class hslPixel{
 	    public double hue=0;
 	    public double sat=0;
@@ -95,7 +104,7 @@ public class Pixel {
         red=r;green=g;blue=b;alpha=255;
         limit();
     }
-    public Pixel(int r, int g, int b,int a){
+    public Pixel(int a, int r, int g, int b){
         red=r;green=g;blue=b;alpha=a;
         limit();
     }
@@ -103,24 +112,44 @@ public class Pixel {
         red=r;green=g;blue=b;alpha=255;
         limit();
     }
-    public void set(int r, int g, int b,int a){
+    public void set(int a, int r, int g, int b){
         red=r;green=g;blue=b;alpha=a;
         limit();
     }
+    /**
+     * Puts all ARGB values into a single hexadecimal value. This 
+     * can be undone by using "new Pixel(value)".
+     * @return The hexadecimal value of this pixel
+     */
     public int getHex(){
         limit();
         return ((alpha<<24)|(red<<16)|(green<<8)|blue);
     }
-     
+    /**
+     * Limit each channel of this pixel to be positive and smaller than 256
+     */
     public void limit(){
         min(0);
         max(255);
     }
+    /**
+     * Generates a random pixel and return s it
+     * @param random used to generate the values
+     * @return A randomly generated pixel
+     */
     public static Pixel random(Random rand) {
         return new Pixel(rand.nextInt());
     }
-    public static Pixel random(Random rand, int min) {
-        Pixel pix = new Pixel(rand.nextInt());
+    /**
+     * Same as random(...), but makes sure that at least one channel(red, 
+     * green or blue) remains above the minimum value
+     * @param random used to generate the values
+     * @param min minimum value
+     * @return A randomly generated pixel with at least one channel above 
+     * the minimum value
+     */
+    public static Pixel random(Random random, int min) {
+        Pixel pix = new Pixel(random.nextInt());
         if(pix.red<min&&pix.green<min&&pix.blue<min){
             if(pix.red>pix.green){
                 if(pix.red>pix.blue){
@@ -142,13 +171,17 @@ public class Pixel {
         }
         return pix;
     }
+    /**
+     * Sets all color channels to the average of them
+     * @return this pixel
+     */
     public Pixel grayscale() {
         int res = (red+green+blue)/3;
         red=green=blue=res;
         return this;
     }
- 
-    public Pixel light(Pixel light){
+    // This was used to project light into this pixel
+    /*public Pixel light(Pixel light){
         Pixel res = this.copy();
         int r = light.red;
         int g = light.green;
@@ -160,8 +193,10 @@ public class Pixel {
         if(res.blue >b)res.blue =b;
         else res.blue +=(b-res.blue )/2;
         return res;
-    }
-    public Pixel mid(Pixel p){
+    }*/
+    
+    // i dont even know why i used this :/
+    /*public Pixel mid(Pixel p){
         if(alpha==0&&p.alpha==0)
             return Pixel.transparent;
         if(alpha==0)
@@ -169,32 +204,82 @@ public class Pixel {
         if(p.alpha==0)
             return p.copy();
         return new Pixel((p.red+red)/2,(p.green+green)/2,(p.blue+blue)/2);
+    }*/
+    /**
+     * Sums this pixel's channels and another pixel's channels and 
+     * returns a new Pixel with the results
+     * @param other the other pixel to be summed with
+     * @return the result of each color channel of both pixels summed
+     */
+    public Pixel sum(Pixel other){
+        return new Pixel(other.red+red,other.green+green,other.blue+blue);
     }
-    public Pixel sum(Pixel p){
-        return new Pixel(p.red+red,p.green+green,p.blue+blue);
-    }
+    /**
+     * Subtracts this pixel's channels and another pixel's channels and 
+     * returns a new Pixel with the results
+     * @param other the other pixel to be subtracted with
+     * @return the result of each color channel of both pixels subtracted
+     */
     public Pixel sub(Pixel p){
         return new Pixel(red-p.red,green-p.green,blue-p.blue);
     }
+    /**
+     * Multiplies this pixel's color channels by the specified number and returns 
+     * it in a new pixel
+     * @param num the number to multiply
+     * @return a new pixel identical to this one, but with all channels multiplied by a number
+     */
     public Pixel mult(double num){
         return mult(num,num,num);
     }
+    /**
+     * Multiplies this pixel's alpha and color channels by two numbers(alpha and colors respectively) 
+     * and returns the new values in a new pixel.
+     * @param alpha the number to multiply
+     * @param colors the number to multiply
+     * @return a new pixel identical to this one, but with its channels multiplied by the supplied numbers
+     */
     public Pixel mult(double alpha,double colors){
         return mult(alpha,colors,colors,colors);
     }
+    /**
+     * Multiplies this pixel's color channels by three numbers(r,g and b respectively) 
+     * and returns the new values in a new pixel.
+     * @param r the number to multiply the red channel
+     * @param g the number to multiply the green channel
+     * @param b the number to multiply the blue channel
+     * @return a new pixel identical to this one, but with its channels multiplied by the supplied numbers
+     */
     public Pixel mult(double r,double g,double b){
         return mult(1.0,r,g,b);
     }
+    /**
+     * Multiplies this pixel's alpha and color channels by three numbers(a, r, g and b respectively) 
+     * and returns the new values in a new pixel.
+     * @param a the number to multiply the alpha channel
+     * @param r the number to multiply the red channel
+     * @param g the number to multiply the green channel
+     * @param b the number to multiply the blue channel
+     * @return a new pixel identical to this one, but with its channels multiplied by the supplied numbers
+     */
     public Pixel mult(double a,double r,double g,double b){
         return new Pixel((int)(red*r),(int)(green*g),(int)(blue*b),(int)(alpha*a));
     }
-    public Pixel min(int r,int g,int b,int a){
+    /**
+     * Makes sure that each channel of this pixel is bigger than supplied values.
+     * @return this pixel
+     */
+    public Pixel min(int a, int r,int g,int b){
+        if(alpha<a)alpha=a;
         if(red<r)red=r;
         if(green<g)green=g;
         if(blue<b)blue=b;
-        if(alpha<a)alpha=a;
         return this;
     }
+    /**
+     * Makes sure that each channel of this pixel is smaller than supplied values.
+     * @return this pixel
+     */
     public Pixel max(int r,int g,int b,int a){
         if(red>r)red=r;
         if(green>g)green=g;
@@ -202,10 +287,18 @@ public class Pixel {
         if(alpha>a)alpha=a;
         return this;
     }
+    /**
+     * Makes sure that all channels of this pixel are bigger than supplied values.
+     * @return this pixel
+     */
     public Pixel min(int x){
         min(x,x,x,x);
         return this;
     }
+    /**
+     * Makes sure that all channels of this pixel are smaller than supplied values.
+     * @return this pixel
+     */
     public Pixel max(int x){
         max(x,x,x,x);
         return this;
@@ -217,34 +310,61 @@ public class Pixel {
         Pixel e = (Pixel) obj;
         return ((e.red==this.red)&&(e.green==this.green)&&(e.blue==this.blue));
     }
+    /**
+     * Returns true if this pixel is brighter than supplied one
+     * @param other the other pixel
+     * @return true if this pixel is brighter than the other one and false otherwise.
+     */
     public boolean isBrighter(Pixel other){
-        return diference(other)>0;
+        return difference(other)>0;
     }
+    /**
+     * Returns true if this pixel is darker than supplied one
+     * @param other the other pixel
+     * @return true if this pixel is darker than the other one and false otherwise.
+     */
     public boolean isDarker(Pixel other){
-        return diference(other)<0;
+        return difference(other)<0;
     }
-    public double diference(Pixel other){
-    	return (red-other.red)/**0.85*/+(green-other.green)+(blue-other.blue)/**0.7*/;
+    /**
+     * Returns the sum of the difference between each color channel of this pixel and another.
+     * Also, p1.difference(p2)==-p2.difference(p1) should always be true
+     * @param other the other pixel
+     * @return the sum of the difference between each color channel of both pixels
+     */
+    public double difference(Pixel other){
+    	// these coefficients(*0.85 and *0.7) were here because blue looks 
+    	// darker than red and red looks darker than green and i wanted to fix it.
+    	return (red-other.red)/* *0.85 */+(green-other.green)+(blue-other.blue)/* *0.7 */;
     }
+    /**
+     * Returns a new instance of this pixel with the same channel values.
+     * @return a copy of this pixel.
+     */
     public Pixel copy() {
-        return new Pixel(red, green, blue);
+        return new Pixel(alpha, red, green, blue);
     }
+    /**
+     * Returns a Color version of this pixel, so it can be used in the Graphics class
+     * @return a Color to be used in Graphics
+     */
     public Color getColor(){
         limit();
-        return new Color(red,green,blue);
+        return new Color(red,green,blue,alpha);
     }
+    /**
+     * Returns a Color version of this pixel with specified alpha, so it can be used in the Graphics class
+     * @return a Color to be used in Graphics
+     */
     public Color getColor(int alpha){
         limit();
         return new Color(red,green,blue,255-alpha);
     }
-    @Deprecated
-    public double difference(Pixel other) {
-        double r = Math.abs(red-other.red)/255.0;
-        double g = Math.abs(green-other.green)/255.0;
-        double b = Math.abs(blue-other.blue)/255.0;
-        double a = Math.abs(alpha-other.alpha)/255.0;
-        return (r+b+g+a)/4.0;
-    }
+    /**
+     * Draws this pixel on top of another, this should be used when drawing a transparent pixel on top of another.
+     * @param other the other pixel
+     * @return a new pixel with the description above
+     */
     public Pixel over(Pixel other){
     	double a = alpha/255.0;
     	double oa = other.alpha/255.0;
@@ -252,5 +372,13 @@ public class Pixel {
         int ng = (int)(green*a+other.green*oa*(1-a));
         int nb = (int)(blue*a+other.blue*oa*(1-a));
         return new Pixel(nr,ng,nb);
+    }
+    /**
+     * Draws a pixel on top of this one, this should be used when drawing a transparent pixel on top of this one.
+     * @param other the other pixel
+     * @return a new pixel with the description above
+     */
+    public Pixel under(Pixel other){
+    	return other.over(this);
     }
 }
