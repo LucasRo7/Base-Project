@@ -15,29 +15,35 @@ import com.LS7.util.image.Pixel;
  * 
  * @author LucasRo7
  */
-public class Renderer extends Canvas implements Runnable {
+public abstract class Renderer extends Canvas implements Runnable {
 	
 	// Amount of horizontal pixels
-    public static int width = 320;
+    public static int width;
     // Amount of vertical pixels
-    public static int height = 240;
+    public static int height;
 	// Scale of pixels
-    public static int res = 2;
+    public static int res;
     // Frames per second
-    public static double FPS = 60;
+    public static double targetFPS=60;
 	private static final long serialVersionUID = 1880057858920032660L;
 	
 	// Image that contains all pixels(integer pixels)
-    protected BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    protected BufferedImage bi;
 	// Array that contains all pixels(integer pixels)
-    protected int[] imgpixels = ((DataBufferInt) bi.getRaster().getDataBuffer()).getData();
+    protected int[] imgpixels;
 	// Array that contains all pixels(Pixel class)
-    protected Pixel[] pixels = new Pixel[imgpixels.length];
+    protected Pixel[] pixels;
     
     // Thread that contains the Renderer class
     protected Thread thread;
-    
-    public Renderer() {
+    /**
+     * Used to set-up the class, should be called after setting a value to width, height and res.
+     * Calling this method is very important!
+     */
+    public void setup() {
+    	bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    	imgpixels = ((DataBufferInt) bi.getRaster().getDataBuffer()).getData();
+    	pixels = new Pixel[imgpixels.length];
         setPreferredSize(new Dimension(width*res,height*res));
         for (int i = 0; i < pixels.length; i++) {
             pixels[i] = Pixel.black;
@@ -62,16 +68,16 @@ public class Renderer extends Canvas implements Runnable {
     public synchronized void run() {
         long lastNanoTime = System.nanoTime();
         double unprocessed = 0;
-        double nsPerTick = 1000000000.0 / FPS;
+        double nsPerTick = 1000000000.0 / targetFPS;
         long timer = System.currentTimeMillis();
         int  frames = 0;
         while (Data.running) {
             long now = System.nanoTime();
             unprocessed += (now - lastNanoTime) / nsPerTick;
             lastNanoTime = now;
-            if(unprocessed>=10){
-                System.out.println("Skipping "+(unprocessed-10));
-                unprocessed-=10;
+            if(unprocessed>=targetFPS){
+                System.out.println("Skipping "+(unprocessed-targetFPS));
+                unprocessed-=targetFPS;
             }
             while (unprocessed >= 1) {
                 render();
@@ -116,22 +122,21 @@ public class Renderer extends Canvas implements Runnable {
         bs.show();
         g.dispose();
     }
+    
+    
+    
     /**
      * Renders anything that uses the Graphics to render
      * 
      * @param graphics the graphics class used to render
      */
-    protected void graphicsRender(Graphics graphics) {
-    	// something.render(graphics);
-    }
+    protected abstract void graphicsRender(Graphics graphics);
     /**
      * Renders anything that uses per pixel rendering
      * e.g. uses methods like drawPixel(...),
      */
-    protected void pixelRender() {
-    	// something.render(this);
-    	drawLine(width/2, height/2, Input.amx, Input.amy,0.1,true,Pixel.white);
-    }
+    protected abstract void pixelRender();
+    
     /**
      * Returns the pixel at the specified position.
      * @param x the pixel's X position
@@ -173,7 +178,7 @@ public class Renderer extends Canvas implements Runnable {
      * @param precision the precision of the line, 1 is ideal if AA is false,
      *        any value higher than 1 may produce blank spaces within the line and
      *        values too small may cause lag
-     * @param AA if this class should use anti-aliasing
+     * @param AA if this method should use anti-aliasing or just default pixel rendering
      * @param color the Pixel to draw
      */
     public void drawLine(double x1,double y1,double x2,double y2,double precision,boolean AA,Pixel color){
@@ -181,7 +186,7 @@ public class Renderer extends Canvas implements Runnable {
     	double y = y2-y1;
     	double dir = Math.atan2(x, y);
     	double dist = Math.sqrt(x*x+y*y);
-    	for(double mag = 0;mag<=dist;mag+=0.1){
+    	for(double mag = 0;mag<=dist;mag+=precision){
     		double nx=x1+mag*Math.sin(dir);
     		double ny=y1+mag*Math.cos(dir);
     		if(AA)
@@ -198,7 +203,7 @@ public class Renderer extends Canvas implements Runnable {
      */
     public void drawAAPixels(double x, double y, Pixel p){
     	double o=0.4;
-    	Pixel darker=p.mult(0.1,1,1,1);
+    	Pixel darker=p.mult(0.175,1,1,1);
     	drawAAPixel(x+o,y+o,darker);
     	drawAAPixel(x-o,y+o,darker);
     	drawAAPixel(x+o,y-o,darker);
@@ -224,7 +229,7 @@ public class Renderer extends Canvas implements Runnable {
 	        py= (0.5+Math.abs(Math.round(y)-y));
 	        d=px*py;
     	}
-        Pixel color=p.mult(d, 1, 1, 1);
+        Pixel color=p.mult(d, 1);
         drawPixel((int)x,(int)y,color.over(getPixel((int)x,(int)y)));
     }
 }

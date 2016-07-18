@@ -117,7 +117,13 @@ public class Vector3f {
 		return new Vector3f(x,y,z);
 	}
 	public static float dot(Vector3f left, Vector3f right) {
+		left.normalize();right.normalize();
 		return (left.x*right.x+left.y*right.y+left.z*right.z);
+	}
+	public static Vector3f reflection(Vector3f vector, Vector3f normal){
+		normal.normalize();
+		Vector3f res=(normal).mult(Vector3f.dot(vector,normal)*2).sub(vector);
+		return res;
 	}
 	public Vector3f normalize() {
 		float len = this.length();

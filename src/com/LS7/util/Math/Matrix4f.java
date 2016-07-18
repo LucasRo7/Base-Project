@@ -22,41 +22,13 @@ public class Matrix4f implements Cloneable{
 		for(int ii = 0; ii<e.length;ii++){
 			e[ii]=0.0f;
 		}
-		e[ 0]=a;
-		e[ 1]=b;
-		e[ 2]=c;
-		e[ 3]=d;
-		e[ 4]=q;
-		e[ 5]=f;
-		e[ 6]=g;
-		e[ 7]=h;
-		e[ 8]=i;
-		e[ 9]=j;
-		e[10]=k;
-		e[11]=l;
-		e[12]=m;
-		e[13]=n;
-		e[14]=o;
-		e[15]=p;
+		e[ 0]=a;e[ 4]=q;e[ 8]=i;e[12]=m;
+		e[ 1]=b;e[ 5]=f;e[ 9]=j;e[13]=n;
+		e[ 2]=c;e[ 6]=g;e[10]=k;e[14]=o;
+		e[ 3]=d;e[ 7]=h;e[11]=l;e[15]=p;
 	}
 	public static Matrix4f identity(){
 		return new Matrix4f(1.0f);
-	}
-	public Matrix4f multiply2(Matrix4f other){
-		float[] temp = new float[16];
-		for(int x = 0; x<4;x++){
-			for(int y = 0; y<4;y++){
-				float sum = 0.0f;
-				for(int ee = 0; ee<4;ee++){
-					sum+=e[ee+y*4]*other.e[x+ee*4];
-				}
-				temp[x+y*4]=sum;
-			}
-		}
-		for(int i=0;i<temp.length;i++){
-			e[i]=temp[i];
-		}
-		return this;
 	}
 	public Matrix4f multiply(Matrix4f other){
 		Matrix4f result= new Matrix4f();
@@ -96,38 +68,15 @@ public class Matrix4f implements Cloneable{
 		result.e[2+3*4]=(far+near)/(far-near);
 		return result;
 	}
-	public static Matrix4f perspective2(float fov, float aspect,float n, float f){
+	public static Matrix4f perspective(float fov,float aspect,float n, float f){
 		Matrix4f result = Matrix4f.identity();	
-		result.e[0+0*4]=((float)(1.0/Math.tan(Math.toRadians(0.5*fov))))/aspect;
-		result.e[1+1*4]=((float)(1.0/Math.tan(Math.toRadians(0.5*fov))));
-		result.e[2+2*4]=(n+f)/(n-f);
-		result.e[3+2*4]=1.0f;
-		result.e[2+3*4]=(1.0f*n*f)/(n-f);
-		return result;
-	}
-	public static Matrix4f perspective3(float fovx,float fovy,float n, float f){
-		Matrix4f result = Matrix4f.identity();	
-		result.e[0+0*4]=((float)(1.0/Math.tan(Math.toRadians(0.5*fovx))));
-		result.e[1+1*4]=((float)(1.0/Math.tan(Math.toRadians(0.5*fovy))));
+		result.e[0+0*4]=((float)(1.0/Math.tan(Math.toRadians(0.5*fov))));
+		result.e[1+1*4]=((float)(1.0/Math.tan(Math.toRadians(0.5*fov/aspect))));
 		result.e[2+2*4]=(f+n)/(f-n);
 		result.e[3+2*4]=1.0f;
 		result.e[3+3*4]=0f;
 		result.e[2+3*4]=(2.0f*n*f)/(f-n);
 		return result;
-	}
-	public static Matrix4f perspective(float fov, float aspect,float znear, float zfar){
-		Matrix4f matrix = new Matrix4f();
-        float tan = (float) (1.0 / (Math.tan(fov * 0.5)));
-        matrix.e[0] = tan / aspect;
-        matrix.e[1] = matrix.e[2] = matrix.e[3] = 0.0f;
-        matrix.e[5] = tan;
-        matrix.e[4] = matrix.e[6] = matrix.e[7] = 0.0f;
-        matrix.e[8] = matrix.e[9] = 0.0f;
-        matrix.e[10] = -zfar / (znear - zfar);
-        matrix.e[11] = 1.0f;
-        matrix.e[12] = matrix.e[13] = matrix.e[15] = 0.0f;
-        matrix.e[14] = (znear * zfar) / (znear - zfar);
-        return matrix;
 	}
 	public static Matrix4f translate(float x, float y,float z){
 		Matrix4f result = Matrix4f.identity();
@@ -136,8 +85,8 @@ public class Matrix4f implements Cloneable{
 		result.e[14]=z;
 		return result;
 	}
-	public static Matrix4f translate(Vector3f sub) {
-		return translate(sub.x,sub.y,sub.z);
+	public static Matrix4f translate(Vector3f translation) {
+		return translate(translation.x,translation.y,translation.z);
 	}
 	public static Matrix4f rotate(float a, Vector3f axis){
 		Matrix4f result = Matrix4f.identity();
@@ -205,9 +154,6 @@ public class Matrix4f implements Cloneable{
 	public void get(int row, int column,float v){
 		e[row+column*4]=v;
 	}
-	/*public FloatBuffer getBuffer(){
-		return BufferUtil.tFB(elements);
-	}*/
 	@Override
 	public Matrix4f clone(){
 		Matrix4f res = Matrix4f.identity();
@@ -227,65 +173,41 @@ public class Matrix4f implements Cloneable{
 		float ey=-Vector3f.dot(y,p);
 		float ez=-Vector3f.dot(z,p);
 		return new Matrix4f(x.x,x.y,x.z,ex, y.x,y.y,y.z,ey, z.x,z.y,z.z,ez, 0,0,0,1);
-		//return new Matrix4f(x.x,y.x,z.x,0, x.y,y.y,z.y,0, x.z,y.z,z.z,0, ex,ey,ez,1);
 	}
 	public static Matrix4f rotationX(float angle){
 		Matrix4f res = new Matrix4f();
 		float s = (float) Math.sin(angle);
 		float c = (float) Math.cos(angle);
-		/*res.elements[0]=1;
-		res.elements[15]=1;
-		res.elements[5]=c;
-		res.elements[10]=c;
-		res.elements[9]=-s;
-		res.elements[6]=s;
-		/*/
 		res.e[0]=1;
-		
 		res.e[15]=1;
 		res.e[5]=c;
 		res.e[10]=c;
 		res.e[9]=-s;
-		res.e[6]=s;//*/
+		res.e[6]=s;
 		return res;
 	}
 	public static Matrix4f rotationZ(float angle){
 		Matrix4f res = new Matrix4f();
 		float s = (float) Math.sin(angle);
 		float c = (float) Math.cos(angle);
-		/*res.elements[0]=c;
-		res.elements[1]=s;
-		res.elements[4]=-s;
-		res.elements[5]=c;
-		res.elements[10]=1;
-		res.elements[15]=1;
-		/*/
 		res.e[0]=c;
 		res.e[4]=s;
 		res.e[1]=-s;
 		res.e[5]=c;
 		res.e[10]=1;
-		res.e[15]=1;//*/
+		res.e[15]=1;
 		return res;
 	}
 	public static Matrix4f rotationY(float angle){
 		Matrix4f res = new Matrix4f();
 		float s = (float) Math.sin(angle);
 		float c = (float) Math.cos(angle);
-		/*res.elements[0]=c;
-		res.elements[2]=-s;
-		res.elements[5]=1;
-		res.elements[8]=s;
-		res.elements[10]=c;
-		res.elements[15]=1;
-		/*/
 		res.e[0]=c;
-		 
 		res.e[8]=-s;
 		res.e[5]=1;
 		res.e[2]=s;
 		res.e[10]=c;
-		res.e[15]=1;//*/
+		res.e[15]=1;
 		return res;
 	}
 	public static Matrix4f rotationYPR(float yaw, float pitch, float roll){

@@ -2,7 +2,13 @@ package com.LS7.util.image;
 
 import java.awt.image.BufferedImage;
 import java.util.Random;
-
+/**
+ * Thanks to Zelimir Fedoran at github since he made this generator, wich I ported 
+ * to Java.<br>
+ * 
+ * Github Repository:
+ * <a href=https://github.com/zfedoran/pixel-sprite-generator>Original Github repository</a>
+ */
 public class ProceduralSprite {
 	
 	public interface mask{
@@ -17,14 +23,14 @@ public class ProceduralSprite {
 	}
 	public static BufferedImage Sprite(mask m, boolean[] options,long seed){
 		Random rand = new Random(seed);
-		return Sprite(m,options,rand);
+		return sprite(m,options,rand);
 		
 	}
 	public static BufferedImage Sprite(mask m, boolean[] options){
 		Random rand = new Random();
-		return Sprite(m,options,rand);
+		return sprite(m,options,rand);
 	}
-	public static BufferedImage Sprite(mask m, boolean[] options,Random rand){
+	public static BufferedImage sprite(mask m, boolean[] options,Random rand){
 		boolean mirrorX=options[0];
 		boolean mirrorY=options[1];
 		int w=m.width()*(mirrorX?2:1);
@@ -34,14 +40,7 @@ public class ProceduralSprite {
 		for (int x = 0; x < m.width(); x++)
 			for (int y = 0; y < m.height(); y++) {
 				double val = m.getData(x, y);
-				//if(val<=1)
-					val=(val*(rand.nextDouble()));
-				/*else if(val==2){
-					if(rand.nextDouble()>0.5)
-						val=1;
-					else
-						val=-1;
-				}*/
+				val=(val*(rand.nextDouble()));
 				data[x][y]=val>0.5?1:0;
 			}
 		if(mirrorX)

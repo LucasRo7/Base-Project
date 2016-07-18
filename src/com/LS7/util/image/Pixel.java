@@ -117,8 +117,8 @@ public class Pixel {
         limit();
     }
     /**
-     * Puts all ARGB values into a single hexadecimal value. This 
-     * can be undone by using "new Pixel(value)".
+     * Puts all channels into a single hexadecimal integer. This 
+     * can be undone by using "new Pixel(hex)".
      * @return The hexadecimal value of this pixel
      */
     public int getHex(){
@@ -133,7 +133,7 @@ public class Pixel {
         max(255);
     }
     /**
-     * Generates a random pixel and return s it
+     * Generates a random pixel and returns it
      * @param random used to generate the values
      * @return A randomly generated pixel
      */
@@ -141,8 +141,8 @@ public class Pixel {
         return new Pixel(rand.nextInt());
     }
     /**
-     * Same as random(...), but makes sure that at least one channel(red, 
-     * green or blue) remains above the minimum value
+     * Generates a random pixel and returns it, but makes sure that at least
+     * one color channel(red, green or blue) remains above the minimum value
      * @param random used to generate the values
      * @param min minimum value
      * @return A randomly generated pixel with at least one channel above 
@@ -254,7 +254,7 @@ public class Pixel {
         return mult(1.0,r,g,b);
     }
     /**
-     * Multiplies this pixel's alpha and color channels by three numbers(a, r, g and b respectively) 
+     * Multiplies this pixel's alpha and color channels by four numbers(a, r, g and b respectively) 
      * and returns the new values in a new pixel.
      * @param a the number to multiply the alpha channel
      * @param r the number to multiply the red channel
@@ -263,7 +263,7 @@ public class Pixel {
      * @return a new pixel identical to this one, but with its channels multiplied by the supplied numbers
      */
     public Pixel mult(double a,double r,double g,double b){
-        return new Pixel((int)(red*r),(int)(green*g),(int)(blue*b),(int)(alpha*a));
+        return new Pixel((int)(alpha*a),(int)(red*r),(int)(green*g),(int)(blue*b));
     }
     /**
      * Makes sure that each channel of this pixel is bigger than supplied values.
@@ -280,7 +280,7 @@ public class Pixel {
      * Makes sure that each channel of this pixel is smaller than supplied values.
      * @return this pixel
      */
-    public Pixel max(int r,int g,int b,int a){
+    public Pixel max(int a,int r,int g,int b){
         if(red>r)red=r;
         if(green>g)green=g;
         if(blue>b)blue=b;
@@ -366,6 +366,8 @@ public class Pixel {
      * @return a new pixel with the description above
      */
     public Pixel over(Pixel other){
+    	if(alpha==255)
+    		return this;
     	double a = alpha/255.0;
     	double oa = other.alpha/255.0;
         int nr = (int)(red*a+other.red*oa*(1-a));

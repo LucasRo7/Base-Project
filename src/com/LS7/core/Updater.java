@@ -1,17 +1,20 @@
 package com.LS7.core;
 
 /**
- * Updater class, responsible for everything done(except rendering)
+ * Updater class, responsible for everything done(other than rendering)
  * 
  * @author LucasRo7
  */
-public class Updater implements Runnable {
+public abstract class Updater implements Runnable {
 
+    // Update calls per second
+    public static double targetUPS = 60;
+    
     // Thread that contains the Updater class
     public Thread thread;
 
     /**
-     * Create and start a thread containing this renderer class
+     * Create and start a thread containing this updater class
      */
     public void start() {
         thread = new Thread(this,"Updater Thread");
@@ -27,19 +30,18 @@ public class Updater implements Runnable {
      * Main loop
      */
     public void run() {
-        // This code is SOOO old :/
         long lastNanoTime = System.nanoTime();
         double unprocessed = 0;
-        double nsPerTick = 1000000000.0 / 60;
+        double nsPerTick = 1000000000.0 / targetUPS;
         long timer = System.currentTimeMillis();
         int ticks = 0;
         while (Data.running) {
             long now = System.nanoTime();
             unprocessed += (now - lastNanoTime) / nsPerTick;
             lastNanoTime = now;
-            if(unprocessed>=6000){
-                System.out.println("Skipping "+(unprocessed-6000));
-                unprocessed-=6000;
+            if(unprocessed>=targetUPS){
+                System.out.println("Skipping "+(unprocessed-targetUPS));
+                unprocessed-=targetUPS;
             }
             while (unprocessed >= 1) {
                 update();
@@ -56,7 +58,5 @@ public class Updater implements Runnable {
     /**
      * Used to update everything
      */
-    protected void update() {
-        
-    }
+    protected abstract void update();
 }
